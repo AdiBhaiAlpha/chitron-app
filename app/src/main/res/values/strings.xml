@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Chitron\'s Archive</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_writing">Writing</string>
+    <string name="nav_gallery">Gallery</string>
+    <string name="nav_about">About</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_admin">CMS</string>
+    <string name="search_articles_hint">Search articles by title, tag, or content…</string>
+    <string name="admin_pin_prompt">Enter Admin PIN</string>
+    <string name="send_message_hint">Write a message…</string>
+</resources>
