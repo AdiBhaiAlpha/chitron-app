@@ -13,8 +13,8 @@ android {
         applicationId = "com.aistudio.chitronsarchive.k9m2xp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "2.1.0"
+        versionCode = 10
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,6 +33,7 @@ android {
             keyPassword = "android"
             enableV1Signing = true
             enableV2Signing = true
+            enableV3Signing = true
         }
     }
 

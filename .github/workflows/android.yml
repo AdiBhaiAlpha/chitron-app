@@ -7,6 +7,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apks:
     runs-on: ubuntu-latest
@@ -34,25 +37,12 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Prepare Keystore & Environment Files
+      - name: Prepare Universal Keystore (Valid 2020-2054) & Environment Files
         run: |
-          if [ ! -f "debug.keystore" ]; then
-            if [ -f "debug.keystore.base64" ]; then
-              echo "Decoding debug.keystore from debug.keystore.base64..."
-              base64 -d debug.keystore.base64 > debug.keystore
-            else
-              echo "Generating standard Android debug.keystore..."
-              keytool -genkeypair -v \
-                -keystore debug.keystore \
-                -storepass android \
-                -alias androiddebugkey \
-                -keypass android \
-                -keyalg RSA \
-                -keysize 2048 \
-                -validity 10000 \
-                -dname "CN=Android Debug,O=Android,C=US"
-            fi
-          fi
+          # Use a fixed keystore whose certificate startdate is 2020/01/01 (preventing future-date CertificateNotYetValidException on devices)
+          UNIVERSAL_KS_B64="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"
+          echo "$UNIVERSAL_KS_B64" | base64 -d > debug.keystore
+          keytool -list -v -keystore debug.keystore -storepass android | head -n 15
 
           if [ ! -f ".env.example" ]; then
             echo "ADMIN_PIN=2448766" > .env.example
@@ -62,13 +52,27 @@ jobs:
             cp .env.example .env
           fi
 
-      - name: Build Signed Debug & Release APKs
+      - name: Build, Align & Sign Debug and Release APKs
         run: |
           gradle assembleDebug assembleRelease --no-daemon --stacktrace
 
-          cp app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk
-          cp app/build/outputs/apk/release/app-release.apk ./app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ./app.apk
+          export ANDROID_SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          ZIPALIGN=$(find "$ANDROID_SDK_ROOT/build-tools" -name zipalign | sort -V | tail -n 1)
+          APKSIGNER=$(find "$ANDROID_SDK_ROOT/build-tools" -name apksigner | sort -V | tail -n 1)
+
+          "$ZIPALIGN" -p -f 4 app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk
+          "$APKSIGNER" sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android \
+            --min-sdk-version 21 --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+            ./app-debug.apk
+          "$APKSIGNER" verify --min-sdk-version 21 -v ./app-debug.apk
+
+          "$ZIPALIGN" -p -f 4 app/build/outputs/apk/release/app-release.apk ./app-release.apk
+          "$APKSIGNER" sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android \
+            --min-sdk-version 21 --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+            ./app-release.apk
+          "$APKSIGNER" verify --min-sdk-version 21 -v ./app-release.apk
+
+          cp ./app-release.apk ./app.apk
           ls -lh ./app-debug.apk ./app-release.apk ./app.apk
 
       - name: Upload Debug APK Artifact
@@ -94,3 +98,18 @@ jobs:
             app-release.apk
             app.apk
           if-no-files-found: error
+
+      - name: Publish Direct Download APKs to GitHub Releases
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-apk
+          name: "Chitron's Archive Android APK (Direct Download)"
+          body: "Direct installable Android APKs (signed with v1 + v2 + v3 schemes, valid 2020–2054). Tap **app-release.apk** or **app-debug.apk** below to download directly without unzipping."
+          prerelease: false
+          files: |
+            app-release.apk
+            app-debug.apk
+            app.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
