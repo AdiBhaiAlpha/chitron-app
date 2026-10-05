@@ -21,10 +21,15 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK Licenses & Install SDK 36
+        run: |
+          export ANDROID_SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -name sdkmanager | sort -V | tail -n 1)
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Setup Gradle
+      - name: Setup Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
@@ -57,24 +62,9 @@ jobs:
             cp .env.example .env
           fi
 
-      - name: Validate and Repair Gradle Wrapper (Fallback)
+      - name: Build Signed Debug & Release APKs
         run: |
-          mkdir -p gradle/wrapper
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ] || ! jar tf gradle/wrapper/gradle-wrapper.jar > /dev/null 2>&1; then
-            echo "Preparing gradle-wrapper.jar..."
-            gradle wrapper --gradle-version 9.3.1 --no-daemon || true
-          fi
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-          fi
-
-      - name: Build Debug & Release APKs
-        run: |
-          if [ -x "./gradlew" ]; then
-            ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
-          else
-            gradle assembleDebug assembleRelease --no-daemon --stacktrace
-          fi
+          gradle assembleDebug assembleRelease --no-daemon --stacktrace
 
           cp app/build/outputs/apk/debug/app-debug.apk ./app-debug.apk
           cp app/build/outputs/apk/release/app-release.apk ./app-release.apk
@@ -84,14 +74,14 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
+          name: app-debug-apk
           path: app-debug.apk
           if-no-files-found: error
 
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.apk
+          name: app-release-apk
           path: app-release.apk
           if-no-files-found: error
 
